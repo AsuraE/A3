@@ -1,0 +1,7 @@
+Compiling test-paramref-9-subr2.pl0
+Parsing complete
+    12   call p( 1, 23, y, s );  // invalid ref param types
+******                  ^  Error: type should be ref(S) not ref(int)
+******                     ^  Error: type should be ref(int) not ref(S)
+Static semantic analysis complete
+2 errors detected.

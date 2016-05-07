@@ -1,0 +1,14 @@
+procedure p( ref x: int, ref y: int ) =
+  begin
+    x := 103;
+    write f;
+    y := 102;
+    write f;
+    y := y-1
+  end;
+var
+  f: int;
+begin
+  call p( f, f );  // ok
+  write f
+end
