@@ -14,6 +14,8 @@ import syms.SymbolTable;
 import syms.Type;
 import syms.Type.IncompatibleTypes;
 import tree.DeclNode.DeclListNode;
+import tree.ExpNode.ActualParamListNode;
+import tree.ExpNode.ActualParamNode;
 import tree.StatementNode.*;
 
 /** class StaticSemantics - Performs the static semantic checks on
@@ -387,4 +389,24 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
         errors.debugMessage( msg );
         errors.error( msg, pos );
     }
+	@Override
+	public ExpNode visitActualParamListNode(ActualParamListNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ExpNode visitActualParamNode(ActualParamNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ExpNode visitFormalParamNode(ActualParamNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ExpNode visitFormalParamListNode(ActualParamListNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

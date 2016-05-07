@@ -9,6 +9,8 @@ import source.Errors;
 import syms.Scope;
 import syms.SymEntry;
 import syms.Type;
+import tree.ExpNode.ActualParamListNode;
+import tree.ExpNode.ActualParamNode;
 import tree.StatementNode.*;
 
 /** class CodeGenerator implements code generation using the
@@ -397,6 +399,30 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
     private void debugMessage( String msg ) {
         errors.debugMessage( msg );
     }
+
+	@Override
+	public Code visitActualParamListNode(ActualParamListNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Code visitActualParamNode(ActualParamNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Code visitFormalParamNode(ActualParamNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Code visitFormalParamListNode(ActualParamListNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 
 }
