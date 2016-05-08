@@ -152,11 +152,11 @@ non terminal DeclNode.ProcedureNode ProcedureDef;
 non terminal Scope            ProcedureHead;
 non terminal ExpNode.FormalParamNode
 							  FormalParam;
-non terminal
+non terminal ExpNode.FormalParamListNode
                               FormalParamList;
 non terminal ExpNode.ActualParamNode
 							  ActualParam;
-non terminal 
+non terminal ExpNode.ActualParamListNode
                               ActualParamList;
 non terminal StatementNode.ListNode StatementList;
 non terminal StatementNode    Statement,
@@ -394,21 +394,21 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
                 procEntry = new SymEntry.ProcedureEntry( id, pos );
                 procEntry.setScope( symtab.getCurrentScope() );
             }
-			Scope scope = new Scope();
+			Scope scope = symtab.newScope( procEntry );
 			SymEntry.ParamEntry entry;
 			ArrayList<SymEntry.ParamEntry> procEntries = new ArrayList<SymEntry.ParamEntry>();
 			for( ExpNode.FormalParamNode paramNode : pl.getFormalParams() ) {
 				String paramId = paramNode.getId();
-				Position paramPos = paramNode.getPos();
+				Position paramPos = paramNode.getPosition();
 				Type.ReferenceType paramType = new Type.ReferenceType( 
-						paramNode.getParamType().resolveType( paramPos ) );	
+						paramNode.getType().resolveType( paramPos ) );	
 				if( paramNode.isRef() ) {
-					entry = new SymEntry.RefParamEntry( paramId, paramPos, scope, paramType );
+					entry = new SymEntry.RefParamEntry( paramId, paramPos, paramType );
 				} else {
-					entry = new SymEntry.ParamEntry( paramId, paramPos, scope, paramType );
+					entry = new SymEntry.ParamEntry( paramId, paramPos, paramType );
 				}
-				int space = scope.allocParameterSpace( paramType.getSpace() );
-				entry.setOffset( offset );
+				int space = scope.allocValueParameterSpace( paramType.getSpace() );
+				entry.setOffset( space );
 				scope.addEntry( entry );
 				procEntries.add( entry );
 			}
@@ -513,11 +513,12 @@ Statement ::= KW_WHILE Condition:c KW_DO Statement:s
     |  KW_CALL IDENTIFIER:id 
             LPAREN ActualParamList:pl RPAREN
         {: 
-            RESULT = new StatementNode.CallNode( new Position(idleft), id );
+            RESULT = new StatementNode.CallNode( new Position(idleft), id, pl );
         :}
     |	KW_CALL IDENTIFIER:id LPAREN RPAREN
     	{:
-			RESULT = new StatementNode.CallNode( new Position( idleft ), id );
+			ExpNode.ActualParamListNode pl = new ExpNode.ActualParamListNode( new Position( idleft ) );
+			RESULT = new StatementNode.CallNode( new Position( idleft ), id, pl );
 		:}
     |  error:p 
         {: 
@@ -533,7 +534,7 @@ ActualParam ::= Condition:c
 	
 ActualParamList ::= ActualParam:ap
 		{:
-			RESULT = new ExpNode.ActualParamNode( new Position( apleft ) );
+			RESULT = new ExpNode.ActualParamListNode( new Position( apleft ) );
 			RESULT.addActualParam( ap );
 		:}
 	|	ActualParamList:apl COMMA ActualParam:ap

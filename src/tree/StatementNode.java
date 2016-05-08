@@ -199,10 +199,12 @@ public abstract class StatementNode {
     public static class CallNode extends StatementNode {
         private String id;
         private SymEntry.ProcedureEntry procEntry;
+        private ExpNode.ActualParamListNode actualParams;
 
-        public CallNode( Position pos, String id ) {
+        public CallNode( Position pos, String id, ExpNode.ActualParamListNode actualParams ) {
             super( pos );
             this.id = id;
+            this.actualParams = actualParams;
         }
         @Override
         public void accept( StatementVisitor visitor ) {

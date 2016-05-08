@@ -358,11 +358,11 @@ public abstract class ExpNode {
     	public String getId() {
     		return id;
     	}
-    	public Type getType() {
-    		return type;
-    	}
-    	public boolean containsRef() {
+    	public boolean isRef() {
     		return ref;
+    	}
+    	public Position getPos() {
+    		return pos;
     	}
 		@Override
 		public ExpNode transform(ExpTransform<ExpNode> visitor) {
@@ -402,7 +402,7 @@ public abstract class ExpNode {
     public static class FormalParamListNode extends ExpNode {
     	ArrayList<FormalParamNode> formalParams;
     	
-		protected FormalParamListNode( Position pos ) {
+		public FormalParamListNode( Position pos ) {
 			super(pos);
 			formalParams = new ArrayList<FormalParamNode>();
 		}
@@ -414,7 +414,7 @@ public abstract class ExpNode {
 		public Code genCode(ExpTransform<Code> visitor) {
 			return null;
 		}
-		public void addFormalParamNode( FormalParamNode fp ) {
+		public void addFormalParam( FormalParamNode fp ) {
 			formalParams.add( fp );
 		}
     	public ArrayList<FormalParamNode> getFormalParams() {
@@ -426,7 +426,7 @@ public abstract class ExpNode {
     public static class ActualParamListNode extends ExpNode {
     	ArrayList<ActualParamNode> actualParams;
     	
-		protected ActualParamListNode( Position pos ) {
+		public ActualParamListNode( Position pos ) {
 			super(pos);
 			actualParams = new ArrayList<ActualParamNode>();
 		}
@@ -438,7 +438,7 @@ public abstract class ExpNode {
 		public Code genCode(ExpTransform<Code> visitor) {
 			return null;
 		}
-		public void addActualParamNode( ActualParamNode ap ) {
+		public void addActualParam( ActualParamNode ap ) {
 			actualParams.add( ap );
 		}
     	public ArrayList<ActualParamNode> getActualParams() {
