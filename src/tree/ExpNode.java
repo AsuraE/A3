@@ -370,11 +370,11 @@ public abstract class ExpNode {
     
     /** Tree node representing a ref param node */
     public static class RefParamNode extends ExpNode {
-    	ArrayList<ParamNode> params;
+    	private SymEntry.RefParamEntry var;
     	
-		public RefParamNode( Position pos ) {
+		public RefParamNode( Position pos, SymEntry.RefParamEntry var ) {
 			super(pos);
-			params = new ArrayList<ParamNode>();
+			this.var = var;
 		}
 		@Override
 		public ExpNode transform(ExpTransform<ExpNode> visitor) {
@@ -384,11 +384,11 @@ public abstract class ExpNode {
 		public Code genCode(ExpTransform<Code> visitor) {
 			return visitor.visitRefParamNode( this );
 		}
-		public void addFormalParam( ParamNode fp ) {
-			params.add( fp );
+		public void setVar( SymEntry.RefParamEntry var ) {
+			this.var = var;
 		}
-    	public ArrayList<ParamNode> getParams() {
-    		return params;
+    	public SymEntry.RefParamEntry getVar() {
+    		return var;
     	}
     }
 }

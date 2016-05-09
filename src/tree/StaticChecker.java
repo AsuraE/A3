@@ -159,18 +159,23 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
         for( ExpNode.ParamNode param: actualParams ) {
         	param.setCond( param.getCond().transform( this ) );
         }
+        if( formalParams.size() != actualParams.size() ) {
+        	endCheck("Call");
+        	return;
+        }
         //Check the types
-        for( int i = 0; i < actualParams.size(); i++ ) {
+        for( int i = 0; i < formalParams.size(); i++ ) {
         	SymEntry.ParamEntry formalParam = formalParams.get( i );
         	ExpNode.ParamNode actualParam = actualParams.get( i );
-        	if( formalParam instanceof SymEntry.ParamEntry ) {
-        		Type type = formalParam.getType().getBaseType();
-        		actualParam.setCond( type.coerceExp( actualParam.getCond() ) );
-        	} else {
+        	if( formalParam instanceof SymEntry.RefParamEntry ) {
         		Type type = actualParam.getCond().getType();
-        		if( !( type.equals( formalParam.getType() ) ) ) {
-        			 errors.error("type should be " + formalParam.getType() + " not " + type, node.getPosition());
+        		if( !type.equals( formalParam.getType() ) ) {
+        			errors.error("type should be " + formalParam.getType() + " not " + type, actualParam.getPosition());
         		}
+        	} else {
+        		Type type = formalParam.getType().getBaseType();
+        		ExpNode newCond = type.coerceExp( actualParam.getCond() );
+        		actualParam.setCond( newCond );
         	}
         }
         endCheck("Call");
@@ -351,6 +356,9 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                 (SymEntry.ConstantEntry)entry;
             newNode = new ExpNode.ConstNode( node.getPosition(), 
                     constEntry.getType(), constEntry.getValue() );
+        } else if (entry instanceof SymEntry.RefParamEntry) {
+        	SymEntry.RefParamEntry refEntry = (SymEntry.RefParamEntry)entry;
+        	newNode = new ExpNode.RefParamNode(node.getPosition(), refEntry);
         } else if( entry instanceof SymEntry.VarEntry ) {
             debugMessage("Transformed " + node.getId() + " to Variable");
             // Set up a new node which is a variable.

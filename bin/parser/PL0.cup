@@ -150,13 +150,13 @@ non terminal                  VarDeclSeq,
                               VarDecl;
 non terminal DeclNode.ProcedureNode ProcedureDef;
 non terminal Scope            ProcedureHead;
-non terminal ExpNode.FormalParamNode
+non terminal SymEntry.ParamEntry
 							  FormalParam;
-non terminal ExpNode.FormalParamListNode
+non terminal ArrayList<SymEntry.ParamEntry>
                               FormalParamList;
-non terminal ExpNode.ActualParamNode
+non terminal ExpNode.ParamNode
 							  ActualParam;
-non terminal ExpNode.ActualParamListNode
+non terminal ArrayList<ExpNode.ParamNode>
                               ActualParamList;
 non terminal StatementNode.ListNode StatementList;
 non terminal StatementNode    Statement,
@@ -395,21 +395,21 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
                 procEntry.setScope( symtab.getCurrentScope() );
             }
 			Scope scope = symtab.newScope( procEntry );
-			SymEntry.ParamEntry entry;
 			ArrayList<SymEntry.ParamEntry> procEntries = new ArrayList<SymEntry.ParamEntry>();
 			for( SymEntry.ParamEntry paramEntry : pl ) {
 				paramEntry.setScope( scope );
 				int offset = scope.allocValueParameterSpace( paramEntry.getType().getSpace() );
-				entry.setOffset( offset );
-				if( scope.addEntry( entry ) == null ) {
-					errors.error( "repeated parameter name " + paramEntry );
+				paramEntry.setOffset( offset );
+				SymEntry scopeAdd = scope.addEntry( paramEntry );
+				if( scopeAdd == null ) {
+					errors.error( "repeated parameter name " + paramEntry.getIdent(), paramEntry.getPosition() );
 				} else {
-					procEntries.add( entry );
+					procEntries.add( paramEntry );
 				}			
 			}
 			procEntry.getType().setParams( procEntries );
             procEntry.setLocalScope( scope );
-			RESULT = procEntry;		
+			RESULT = symtab.newScope( procEntry );		
 		:}
 	|	KW_PROCEDURE IDENTIFIER:id LPAREN RPAREN
         {: 
@@ -439,27 +439,29 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
         :}
     ;
 
-FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:ti
-		{:
-			RESULT = new SymEntry.ParamEntry( id, new Position( idleft ), ti );
-		:}
-	|	KW_REF IDENTIFIER:id COLON TypeIdentifier:ti
-		{:
-			RESULT = new SymEntry.RefParamEntry( id, new Position( idleft ), ti );
-		:}
-	;
 		
 FormalParamList ::= FormalParam:fp
 		{:
-			RESULT = new ExpNode.FormalParamListNode( new Position( fpleft ) );
-			RESULT.addFormalParam( fp );
+			RESULT = new ArrayList<SymEntry.ParamEntry>();
+			RESULT.add( fp );
 		:}
 	|	FormalParamList:fpl COMMA FormalParam:fp
 		{:
-			fpl.addFormalParam( fp );
+			fpl.add( fp );
 			RESULT = fpl;
 		:}
     ;
+
+
+FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:ti
+		{:
+			RESULT = new SymEntry.ParamEntry( id, new Position( idleft ), new Type.ReferenceType( ti.resolveType( new Position( idleft ) ) ) );
+		:}
+	|	KW_REF IDENTIFIER:id COLON TypeIdentifier:ti
+		{:
+			RESULT = new SymEntry.RefParamEntry( id, new Position( idleft ), new Type.ReferenceType( ti.resolveType( new Position( idleft ) ) ) );
+		:}
+	;
 
 CompoundStatement ::= KW_BEGIN StatementList:sl KW_END
         {:
@@ -505,38 +507,38 @@ Statement ::= KW_WHILE Condition:c KW_DO Statement:s
           RESULT = new StatementNode.AssignmentNode( new Position(lvalleft),
                                             lval, rval );
        :} 
-    |  KW_CALL IDENTIFIER:id 
-            LPAREN ActualParamList:pl RPAREN
-        {: 
-            RESULT = new StatementNode.CallNode( new Position(idleft), id, pl );
-        :}
-    |	KW_CALL IDENTIFIER:id LPAREN RPAREN
+    |  KW_CALL IDENTIFIER:id LPAREN RPAREN
     	{:
 			RESULT = new StatementNode.CallNode( new Position( idleft ), id );
 		:}
+	|  KW_CALL IDENTIFIER:id LPAREN ActualParamList:pl RPAREN
+        {: 
+            RESULT = new StatementNode.CallNode( new Position(idleft), id, pl );
+        :}
     |  error:p 
         {: 
             RESULT = new StatementNode.ErrorNode( new Position(pleft) );
         :}
     ;
-
-ActualParam ::= Condition:c
-		{:
-			RESULT = new ExpNode.ActualParamNode( new Position( cleft ), c );
-		:}
-	;
 	
 ActualParamList ::= ActualParam:ap
 		{:
-			RESULT = new ExpNode.ActualParamListNode( new Position( apleft ) );
-			RESULT.addActualParam( ap );
+			RESULT = new ArrayList<ExpNode.ParamNode>();
+			RESULT.add( ap );
 		:}
 	|	ActualParamList:apl COMMA ActualParam:ap
 		{:
-			apl.addActualParam( ap );
+			apl.add( ap );
 			RESULT = apl;
 		:}
     ;
+
+ActualParam ::= Condition:c
+		{:
+			RESULT = new ExpNode.ParamNode( new Position( cleft ), c );
+		:}
+	;
+
 
 LValue ::= IDENTIFIER:id
         {:

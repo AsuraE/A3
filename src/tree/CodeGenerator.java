@@ -1,4 +1,5 @@
 package tree;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
@@ -9,8 +10,8 @@ import source.Errors;
 import syms.Scope;
 import syms.SymEntry;
 import syms.Type;
-import tree.ExpNode.ActualParamListNode;
-import tree.ExpNode.ActualParamNode;
+import tree.ExpNode.ParamNode;
+import tree.ExpNode.RefParamNode;
 import tree.StatementNode.*;
 
 /** class CodeGenerator implements code generation using the
@@ -141,13 +142,26 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
     /** Generate code for a "call" statement. */
     public Code visitCallNode( StatementNode.CallNode node ) {
         beginGen( "Call" );
-        SymEntry.ProcedureEntry proc = node.getEntry();
+        
         Code code = new Code();
+        SymEntry.ProcedureEntry proc = node.getEntry();
+        ArrayList<ParamNode> params = node.getParams(); 
+        // Gen code for params in reverse order
+        for( int i = params.size() - 1; i >= 0; i-- ) {
+        	code.append( params.get( i ).genCode( this ) );
+        	// Convert from offset to absolute address if ref
+        	if( proc.getType().getParams().get( i ) instanceof SymEntry.RefParamEntry ) {
+        		code.generateOp( Operation.TO_GLOBAL );
+        	}
+        }
         /* Generate the call instruction. The second parameter is the
          * procedure's symbol table entry. The actual address is resolved 
          * at load time.
          */
         code.genCall( staticLevel - proc.getLevel(), proc );
+        
+        // Dealloc the params when done
+        code.genDeallocStack( proc.getLocalScope().getValueParameterSpace() );
         endGen( "Call" );
         return code;
     }
@@ -368,7 +382,23 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
         endGen( "NarrowSubrange" );
         return code;
     }
-
+	/** Generate code for a param node */
+	public Code visitParamNode(ParamNode node) {
+		beginGen( "ParamNode" );
+		Code code = node.getCond().genCode( this );
+		endGen( "ParamNode" );
+		return code;
+	}
+	/** Generate code for a ref param node */
+	public Code visitRefParamNode(RefParamNode node) {
+		beginGen( "RefParamNode" );
+		Code code = new Code();
+		code.genLoadConstant( node.getVar().getOffset() );
+		code.generateOp( Operation.LOAD_FRAME );
+		code.generateOp( Operation.TO_LOCAL );
+		endGen( "RefParamNode" );
+		return code;
+	}
     /** Generate code to widen a subrange to an integer. */
     public Code visitWidenSubrangeNode(ExpNode.WidenSubrangeNode node) {
         beginGen( "WidenSubrange" );
@@ -399,30 +429,6 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
     private void debugMessage( String msg ) {
         errors.debugMessage( msg );
     }
-
-	@Override
-	public Code visitActualParamListNode(ActualParamListNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Code visitActualParamNode(ActualParamNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Code visitFormalParamNode(ActualParamNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Code visitFormalParamListNode(ActualParamListNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 
 }
