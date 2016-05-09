@@ -342,43 +342,13 @@ public abstract class ExpNode {
             return "WidenSubrange(" + exp + ":" + getType() + ")";
         }
     }
+   
     
-    /** Tree node representing a formal param node */
-    public static class FormalParamNode extends ExpNode {
-    	private String id;
-    	private Type type;
-    	boolean ref;
-    	
-    	public FormalParamNode( Position pos, String id, Type type, boolean ref ) {
-    		super( pos );
-    		this.id = id;
-    		this.type = type;
-    		this.ref = ref;
-    	}
-    	public String getId() {
-    		return id;
-    	}
-    	public boolean isRef() {
-    		return ref;
-    	}
-    	public Position getPos() {
-    		return pos;
-    	}
-		@Override
-		public ExpNode transform(ExpTransform<ExpNode> visitor) {
-			return null;
-		}
-		@Override
-		public Code genCode(ExpTransform<Code> visitor) {
-			return null;
-		}
-    }
-    
-    /** Tree node representing an actual param node */
-    public static class ActualParamNode extends ExpNode {
+    /** Tree node representing a param node */
+    public static class ParamNode extends ExpNode {
     	private ExpNode cond;
     	
-    	public ActualParamNode( Position pos, ExpNode cond ) {
+    	public ParamNode( Position pos, ExpNode cond ) {
     		super( pos );
     		this.cond = cond;
     	}
@@ -390,59 +360,35 @@ public abstract class ExpNode {
     	}
 		@Override
 		public ExpNode transform(ExpTransform<ExpNode> visitor) {
-			return null;
+			return visitor.visitParamNode( this );
 		}
 		@Override
 		public Code genCode(ExpTransform<Code> visitor) {
-			return null;
+			return visitor.visitParamNode( this );
 		}
     }
     
-    /** Tree node representing a formal param list node */
-    public static class FormalParamListNode extends ExpNode {
-    	ArrayList<FormalParamNode> formalParams;
+    /** Tree node representing a ref param node */
+    public static class RefParamNode extends ExpNode {
+    	ArrayList<ParamNode> params;
     	
-		public FormalParamListNode( Position pos ) {
+		public RefParamNode( Position pos ) {
 			super(pos);
-			formalParams = new ArrayList<FormalParamNode>();
+			params = new ArrayList<ParamNode>();
 		}
 		@Override
 		public ExpNode transform(ExpTransform<ExpNode> visitor) {
-			return null;
+			return visitor.visitRefParamNode( this );
 		}
 		@Override
 		public Code genCode(ExpTransform<Code> visitor) {
-			return null;
+			return visitor.visitRefParamNode( this );
 		}
-		public void addFormalParam( FormalParamNode fp ) {
-			formalParams.add( fp );
+		public void addFormalParam( ParamNode fp ) {
+			params.add( fp );
 		}
-    	public ArrayList<FormalParamNode> getFormalParams() {
-    		return formalParams;
-    	}
-    }
-    
-    /** Tree node representing an actual param list node */
-    public static class ActualParamListNode extends ExpNode {
-    	ArrayList<ActualParamNode> actualParams;
-    	
-		public ActualParamListNode( Position pos ) {
-			super(pos);
-			actualParams = new ArrayList<ActualParamNode>();
-		}
-		@Override
-		public ExpNode transform(ExpTransform<ExpNode> visitor) {
-			return null;
-		}
-		@Override
-		public Code genCode(ExpTransform<Code> visitor) {
-			return null;
-		}
-		public void addActualParam( ActualParamNode ap ) {
-			actualParams.add( ap );
-		}
-    	public ArrayList<ActualParamNode> getActualParams() {
-    		return actualParams;
+    	public ArrayList<ParamNode> getParams() {
+    		return params;
     	}
     }
 }

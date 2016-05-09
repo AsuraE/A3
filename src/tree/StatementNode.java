@@ -199,12 +199,17 @@ public abstract class StatementNode {
     public static class CallNode extends StatementNode {
         private String id;
         private SymEntry.ProcedureEntry procEntry;
-        private ExpNode.ActualParamListNode actualParams;
+        private ArrayList<ExpNode.ParamNode> params;
 
-        public CallNode( Position pos, String id, ExpNode.ActualParamListNode actualParams ) {
+        public CallNode( Position pos, String id, ArrayList<ExpNode.ParamNode> params ) {
             super( pos );
             this.id = id;
-            this.actualParams = actualParams;
+            this.params = params;
+        }
+        public CallNode( Position pos, String id ) {
+        	super( pos );
+        	this.id = id;
+        	this.params = new ArrayList<ExpNode.ParamNode>();
         }
         @Override
         public void accept( StatementVisitor visitor ) {
@@ -223,10 +228,16 @@ public abstract class StatementNode {
         public void setEntry(SymEntry.ProcedureEntry entry) {
             this.procEntry = entry;
         }
+        public ArrayList<ExpNode.ParamNode> getParams() {
+        	return params;
+        }
+        public void setParams( ArrayList<ExpNode.ParamNode> params ) {
+        	this.params = params;
+        }
         @Override
         public String toString( int level ) {
-            String s = "CALL " + procEntry.getIdent() + "(";
-            return s + ")";
+            String s = "CALL " + procEntry.getIdent() + "(" + params.toString() + ")";
+            return s;
         }
     }
     /** Tree node representing a statement list. */

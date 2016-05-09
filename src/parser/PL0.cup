@@ -397,24 +397,19 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
 			Scope scope = symtab.newScope( procEntry );
 			SymEntry.ParamEntry entry;
 			ArrayList<SymEntry.ParamEntry> procEntries = new ArrayList<SymEntry.ParamEntry>();
-			for( ExpNode.FormalParamNode paramNode : pl.getFormalParams() ) {
-				String paramId = paramNode.getId();
-				Position paramPos = paramNode.getPosition();
-				Type.ReferenceType paramType = new Type.ReferenceType( 
-						paramNode.getType().resolveType( paramPos ) );	
-				if( paramNode.isRef() ) {
-					entry = new SymEntry.RefParamEntry( paramId, paramPos, paramType );
+			for( SymEntry.ParamEntry paramEntry : pl ) {
+				paramEntry.setScope( scope );
+				int offset = scope.allocValueParameterSpace( paramEntry.getType().getSpace() );
+				entry.setOffset( offset );
+				if( scope.addEntry( entry ) == null ) {
+					errors.error( "repeated parameter name " + paramEntry );
 				} else {
-					entry = new SymEntry.ParamEntry( paramId, paramPos, paramType );
-				}
-				int space = scope.allocValueParameterSpace( paramType.getSpace() );
-				entry.setOffset( space );
-				scope.addEntry( entry );
-				procEntries.add( entry );
+					procEntries.add( entry );
+				}			
 			}
 			procEntry.getType().setParams( procEntries );
             procEntry.setLocalScope( scope );
-			RESULT = symtab.newScope( procEntry );		
+			RESULT = procEntry;		
 		:}
 	|	KW_PROCEDURE IDENTIFIER:id LPAREN RPAREN
         {: 
@@ -446,11 +441,11 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
 
 FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:ti
 		{:
-			RESULT = new ExpNode.FormalParamNode( new Position( idleft ), id, ti, false );
+			RESULT = new SymEntry.ParamEntry( id, new Position( idleft ), ti );
 		:}
 	|	KW_REF IDENTIFIER:id COLON TypeIdentifier:ti
 		{:
-			RESULT = new ExpNode.FormalParamNode( new Position( idleft ), id, ti, true );
+			RESULT = new SymEntry.RefParamEntry( id, new Position( idleft ), ti );
 		:}
 	;
 		
@@ -517,8 +512,7 @@ Statement ::= KW_WHILE Condition:c KW_DO Statement:s
         :}
     |	KW_CALL IDENTIFIER:id LPAREN RPAREN
     	{:
-			ExpNode.ActualParamListNode pl = new ExpNode.ActualParamListNode( new Position( idleft ) );
-			RESULT = new StatementNode.CallNode( new Position( idleft ), id, pl );
+			RESULT = new StatementNode.CallNode( new Position( idleft ), id );
 		:}
     |  error:p 
         {: 

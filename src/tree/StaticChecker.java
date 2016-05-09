@@ -1,4 +1,5 @@
 package tree;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,8 +15,8 @@ import syms.SymbolTable;
 import syms.Type;
 import syms.Type.IncompatibleTypes;
 import tree.DeclNode.DeclListNode;
-import tree.ExpNode.ActualParamListNode;
-import tree.ExpNode.ActualParamNode;
+import tree.ExpNode.ParamNode;
+import tree.ExpNode.RefParamNode;
 import tree.StatementNode.*;
 
 /** class StaticSemantics - Performs the static semantic checks on
@@ -139,15 +140,38 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
     public void visitCallNode(StatementNode.CallNode node) {
         beginCheck("Call");
         SymEntry.ProcedureEntry procEntry;
+        Type.ProcedureType procType;
         // Look up the symbol table entry for the procedure.
         SymEntry entry = symtab.getCurrentScope().lookup( node.getId() );
         if( entry instanceof SymEntry.ProcedureEntry ) {
             procEntry = (SymEntry.ProcedureEntry)entry;
             node.setEntry( procEntry );
+            procType = procEntry.getType();
         } else {
             staticError( "Procedure identifier required", node.getPosition() );
             endCheck("Call");
             return;
+        }
+        // Begin checks on params
+        List<SymEntry.ParamEntry> formalParams = procType.getParams();
+        ArrayList<ExpNode.ParamNode> actualParams = node.getParams();
+        // Check the conditions of the actual params
+        for( ExpNode.ParamNode param: actualParams ) {
+        	param.setCond( param.getCond().transform( this ) );
+        }
+        //Check the types
+        for( int i = 0; i < actualParams.size(); i++ ) {
+        	SymEntry.ParamEntry formalParam = formalParams.get( i );
+        	ExpNode.ParamNode actualParam = actualParams.get( i );
+        	if( formalParam instanceof SymEntry.ParamEntry ) {
+        		Type type = formalParam.getType().getBaseType();
+        		actualParam.setCond( type.coerceExp( actualParam.getCond() ) );
+        	} else {
+        		Type type = actualParam.getCond().getType();
+        		if( !( type.equals( formalParam.getType() ) ) ) {
+        			 errors.error("type should be " + formalParam.getType() + " not " + type, node.getPosition());
+        		}
+        	}
         }
         endCheck("Call");
     }
@@ -362,7 +386,20 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
         endCheck("WidenSubrange");
         return node;
     }
-
+	@Override
+	public ExpNode visitParamNode(ParamNode node) {
+		beginCheck("ParamNode");
+		// Nothing to do.
+		endCheck("ParamNode");
+		return node;
+	}
+	@Override
+	public ExpNode visitRefParamNode(RefParamNode node) {
+		beginCheck("RefParamNode");
+		// Nothing to do.
+		endCheck("RefParamNode");
+		return node;
+	}
     /**************************** Support Methods ***************************/
     /** Push current node onto debug rule stack and increase debug level */
     private void beginCheck( String node ) {
@@ -389,24 +426,4 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
         errors.debugMessage( msg );
         errors.error( msg, pos );
     }
-	@Override
-	public ExpNode visitActualParamListNode(ActualParamListNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public ExpNode visitActualParamNode(ActualParamNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public ExpNode visitFormalParamNode(ActualParamNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public ExpNode visitFormalParamListNode(ActualParamListNode node) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

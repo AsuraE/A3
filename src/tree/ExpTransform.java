@@ -15,8 +15,6 @@ public interface ExpTransform<ResultType> {
     ResultType visitDereferenceNode(ExpNode.DereferenceNode node);
     ResultType visitNarrowSubrangeNode(ExpNode.NarrowSubrangeNode node);
     ResultType visitWidenSubrangeNode(ExpNode.WidenSubrangeNode node);
-    ResultType visitActualParamNode(ExpNode.ActualParamNode node);
-    ResultType visitActualParamListNode(ExpNode.ActualParamListNode node);
-    ResultType visitFormalParamNode(ExpNode.ActualParamNode node);
-    ResultType visitFormalParamListNode(ExpNode.ActualParamListNode node);
+    ResultType visitParamNode(ExpNode.ParamNode node);
+    ResultType visitRefParamNode(ExpNode.RefParamNode node);
 }
